@@ -1,73 +1,67 @@
+import os
+from dotenv import load_dotenv  # ✅ ensures .env variables are loaded
 from google.adk.agents import Agent
 
-# from google.adk.tools import google_search  # Import the search tool
-from .tools import (
-    create_event,
-    delete_event,
-    edit_event,
-    get_current_time,
-    list_events,
-)
+# ---------------------------------------------------------------------
+# 🔧 Load environment variables from your .env file
+# ---------------------------------------------------------------------
+load_dotenv()
 
+# ✅ Ensure Vertex AI variables are available to the ADK Agent
+# os.environ["PROJECT_ID"] = os.getenv("GOOGLE_CLOUD_PROJECT", "smart-sop-476320")
+# os.environ["LOCATION"] = os.getenv("GOOGLE_CLOUD_LOCATION", "us-east4")
+# os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = os.getenv("GOOGLE_GENAI_USE_VERTEXAI", "True")
+
+# ---------------------------------------------------------------------
+# 🧠 Import your tools
+# ---------------------------------------------------------------------
+from .tools.add_data import add_data
+from .tools.create_corpus import create_corpus
+from .tools.delete_corpus import delete_corpus
+from .tools.delete_document import delete_document
+from .tools.get_corpus_info import get_corpus_info
+from .tools.list_corpora import list_corpora
+from .tools.rag_query import rag_query
+
+# ---------------------------------------------------------------------
+# 🤖 Initialize Vertex AI RAG Agent
+# ---------------------------------------------------------------------
 root_agent = Agent(
-    # A unique name for the agent.
     name="jarvis",
-    model="gemini-2.0-flash-exp",
-    description="Agent to help with scheduling and calendar operations.",
-    instruction=f"""
-    You are Jarvis, a helpful assistant that can perform various tasks 
-    helping with scheduling and calendar operations.
-    
-    ## Calendar operations
-    You can perform calendar operations directly using these tools:
-    - `list_events`: Show events from your calendar for a specific time period
-    - `create_event`: Add a new event to your calendar 
-    - `edit_event`: Edit an existing event (change title or reschedule)
-    - `delete_event`: Remove an event from your calendar
-    - `find_free_time`: Find available free time slots in your calendar
-    
-    ## Be proactive and conversational
-    Be proactive when handling calendar requests. Don't ask unnecessary questions when the context or defaults make sense.
-    
-    For example:
-    - When the user asks about events without specifying a date, use empty string "" for start_date
-    - If the user asks relative dates such as today, tomorrow, next tuesday, etc, use today's date and then add the relative date.
-    
-    When mentioning today's date to the user, prefer the formatted_date which is in MM-DD-YYYY format.
-    
-    ## Event listing guidelines
-    For listing events:
-    - If no date is mentioned, use today's date for start_date, which will default to today
-    - If a specific date is mentioned, format it as YYYY-MM-DD
-    - Always pass "primary" as the calendar_id
-    - Always pass 100 for max_results (the function internally handles this)
-    - For days, use 1 for today only, 7 for a week, 30 for a month, etc.
-    
-    ## Creating events guidelines
-    For creating events:
-    - For the summary, use a concise title that describes the event
-    - For start_time and end_time, format as "YYYY-MM-DD HH:MM"
-    - The local timezone is automatically added to events
-    - Always use "primary" as the calendar_id
-    
-    ## Editing events guidelines
-    For editing events:
-    - You need the event_id, which you get from list_events results
-    - All parameters are required, but you can use empty strings for fields you don't want to change
-    - Use empty string "" for summary, start_time, or end_time to keep those values unchanged
-    - If changing the event time, specify both start_time and end_time (or both as empty strings to keep unchanged)
-
-    Important:
-    - Be super concise in your responses and only return the information requested (not extra information).
-    - NEVER show the raw response from a tool_outputs. Instead, use the information to answer the question.
-    - NEVER show ```tool_outputs...``` in your response.
-
-    Today's date is {get_current_time()}.
-    """,
+    model= "gemini-2.0-flash-lite-001",
+    description="Vertex AI RAG Agent",
     tools=[
-        list_events,
-        create_event,
-        edit_event,
-        delete_event,
+        rag_query,
+        list_corpora,
+        create_corpus,
+        add_data,
+        get_corpus_info,
+        delete_corpus,
+        delete_document,
     ],
+    instruction="""
+    # 🧠 Vertex AI RAG Agent
+
+    You are a helpful RAG (Retrieval Augmented Generation) agent that can interact with Vertex AI's document corpora.
+    You can retrieve information from corpora, list available corpora, create new corpora, add new documents to corpora, 
+    get detailed information about specific corpora, delete specific documents from corpora, 
+    and delete entire corpora when they're no longer needed.
+
+    ## When assisting users, use the sop corpora to provide accurate and relevant information if no corpora is specified.
+    
+    ## Your Capabilities
+    1. **Query Documents**: You can answer questions by retrieving relevant information from document corpora.
+    2. **List Corpora**: You can list all available document corpora to help users understand what data is available.
+    3. **Create Corpus**: You can create new document corpora for organizing information.
+    4. **Add New Data**: You can add new documents (Google Drive URLs, etc.) to existing corpora.
+    5. **Get Corpus Info**: You can provide detailed information about a specific corpus.
+    6. **Delete Document**: You can delete a specific document from a corpus.
+    7. **Delete Corpus**: You can delete an entire corpus and all its associated files.
+
+    ## Communication Guidelines
+    - Be clear and concise in your responses.
+    - Confirm corpus actions (create, delete, add).
+    - Explain what corpus is used for answers.
+    - Handle errors gracefully.
+    """,
 )

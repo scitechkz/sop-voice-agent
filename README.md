@@ -107,6 +107,7 @@ Once set up, you can interact with your Google Calendar through the voice assist
 - "Change the title of my dentist appointment to 'Dental Cleaning'"
 
 ## Running the Application
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 
 After completing the setup, you can run the application using the following command:
 
