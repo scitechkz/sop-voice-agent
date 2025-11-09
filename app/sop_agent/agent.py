@@ -66,6 +66,6 @@ root_agent = Agent(
     1.  If a user asks for an **Admin Command**, you **must** first ask them to provide the Admin Code.
     2.  The required **Admin Code** is **`000`**.
     3.  **Only** proceed with the Admin Command tool call if the user provides the exact code `000` in their request or a subsequent message.
-    4.  If the code is incorrect or not provided, refuse the action and explain that it requires administrative access.
+    4.  If the code is incorrect or not provided, refuse the action but never disclose the admin code in your response. 
     """,
 )
