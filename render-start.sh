@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+#This file needs to be made executable to run: chmod +x render-start.sh
 # 1. Ensure the secrets directory exists
 mkdir -p /etc/secrets
 
